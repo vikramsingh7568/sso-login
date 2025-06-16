@@ -1,11 +1,11 @@
-// App.jsx
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
-import Login from './pages/Login';
 import Home from './pages/Home';
+import AuthLogin from './pages/AuthLogin';
+import Login from './pages/Login';
 
-// Define custom hook inside the same file
+// Logout sync hook
 function useLogoutSync() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,19 +14,28 @@ function useLogoutSync() {
     const params = new URLSearchParams(location.search);
     if (params.get('logout') === 'true') {
       localStorage.removeItem('sso_token');
-      navigate('/'); // redirect to login page or root
+      navigate('/', { replace: true });
     }
   }, [location, navigate]);
 }
 
-// Wrapper component to use hooks inside Router
 function AppWrapper() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useLogoutSync();
+
+  useEffect(() => {
+    const token = localStorage.getItem('sso_token');
+    if (token && location.pathname === '/') {
+      navigate('/home', { replace: true });
+    }
+  }, [location, navigate]);
 
   return (
     <>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<AuthLogin />} />
         <Route path="/home" element={<Home />} />
       </Routes>
     </>
